@@ -26,13 +26,16 @@ const navItems = [
   { label: "Services",     href: "/admin/services",     icon: Briefcase },
 ];
 
-interface Props { unreadCount?: number }
+interface Props { unreadCount?: number; collapsed?: boolean; onToggle?: () => void }
 
-export function AdminSidebar({ unreadCount = 0 }: Props) {
+export function AdminSidebar({ unreadCount = 0, collapsed: collapsedProp, onToggle }: Props) {
   const pathname = usePathname();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsedInternal, setCollapsedInternal] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const collapsed = collapsedProp ?? collapsedInternal;
+  const setCollapsed = onToggle ?? (() => setCollapsedInternal(v => !v));
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -114,16 +117,18 @@ export function AdminSidebar({ unreadCount = 0 }: Props) {
     <>
       {/* Desktop Sidebar */}
       <aside className={cn(
-        "hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-40 bg-[#08081a] border-r border-white/[0.06] transition-all duration-300 overflow-hidden",
+        "hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-40 bg-[#08081a] border-r border-white/[0.06] transition-all duration-300",
         collapsed ? "w-16" : "w-60"
       )}>
+        <div className="flex flex-col h-full overflow-hidden">
+          <SidebarContent />
+        </div>
         <button
-          onClick={() => setCollapsed(v => !v)}
-          className="absolute -right-3 top-6 w-6 h-6 glass border border-white/20 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors z-10"
+          onClick={() => setCollapsed()}
+          className="absolute -right-3 top-6 w-6 h-6 bg-[#08081a] border border-white/20 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors z-10 shadow-lg"
         >
           {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronRight className="w-3 h-3 rotate-180" />}
         </button>
-        <SidebarContent />
       </aside>
 
       {/* Mobile Header */}

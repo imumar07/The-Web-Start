@@ -22,7 +22,6 @@ const navLinks = [
   { label: "About",     href: "/about" },
   { label: "Services",  href: "/services", dropdown: services },
   { label: "Portfolio", href: "/portfolio" },
-  { label: "Pricing",   href: "/pricing" },
   { label: "Blog",      href: "/blog" },
 ];
 
@@ -95,7 +94,7 @@ export function Navbar() {
                         exit={{ opacity: 0, y: 8, scale: 0.96 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <div className="glass-strong rounded-2xl p-2 shadow-glass-lg border border-white/10">
+                        <div className="rounded-2xl p-2 border border-white/10 shadow-2xl" style={{ background: "rgba(10,10,28,0.97)", backdropFilter: "blur(24px)" }}>
                           {link.dropdown.map((s) => (
                             <Link key={s.href} href={s.href}
                               className="block px-3 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-150">

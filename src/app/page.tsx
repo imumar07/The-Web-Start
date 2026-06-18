@@ -10,7 +10,6 @@ import { HorizontalPortfolioNoSSR } from "@/components/sections/home/HorizontalP
 const StatsSection        = dynamic(() => import("@/components/sections/home/StatsSection").then(m => ({ default: m.StatsSection })));
 const WhyUsSection        = dynamic(() => import("@/components/sections/home/WhyUsSection").then(m => ({ default: m.WhyUsSection })));
 const TestimonialsSection = dynamic(() => import("@/components/sections/home/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
-const PricingSection      = dynamic(() => import("@/components/sections/home/PricingSection").then(m => ({ default: m.PricingSection })));
 const FAQSection          = dynamic(() => import("@/components/sections/home/FAQSection").then(m => ({ default: m.FAQSection })));
 const CTASection          = dynamic(() => import("@/components/sections/home/CTASection").then(m => ({ default: m.CTASection })));
 
@@ -42,9 +41,6 @@ export default function HomePage() {
 
         {/* Testimonials */}
         <TestimonialsSection />
-
-        {/* Pricing */}
-        <PricingSection />
 
         {/* FAQ */}
         <FAQSection />

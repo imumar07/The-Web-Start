@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { m } from "framer-motion";
-import { Mail, MapPin, Calendar, MessageCircle, Send } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Send } from "lucide-react";
 import { GradientText } from "@/components/ui/GradientText";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
@@ -34,7 +34,6 @@ export function ContactContent() {
   const [sent, setSent] = useState(false);
 
   const wa = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "+919000000000";
-  const calendly = process.env.NEXT_PUBLIC_CALENDLY_URL ?? "https://calendly.com/thewebstart";
   const waUrl = `https://wa.me/${wa.replace(/\D/g, "")}?text=Hi%2C%20I%27d%20like%20to%20discuss%20a%20project.`;
 
   const handleContact = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -107,10 +106,6 @@ export function ContactContent() {
               <Button href={waUrl} external variant="secondary" className="w-full justify-center"
                 icon={<MessageCircle className="w-4 h-4" />}>
                 Chat on WhatsApp
-              </Button>
-              <Button href={calendly} external variant="ghost" className="w-full justify-center border border-white/10"
-                icon={<Calendar className="w-4 h-4" />}>
-                Book a Free Discovery Call
               </Button>
             </div>
 
