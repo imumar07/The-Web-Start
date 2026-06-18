@@ -90,7 +90,7 @@ export function PortfolioManager() {
       render: (p: PortfolioItem) => (
         <div className="flex items-center gap-3">
           {p.cover_url ? (
-            {/* eslint-disable-next-line @next/next/no-img-element */}<img src={p.cover_url} alt={p.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-white/5" />
+            <span style={{ backgroundImage: `url(${p.cover_url})` }} className="w-10 h-10 rounded-lg bg-cover bg-center flex-shrink-0 block" />
           ) : (
             <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0"><ImageIcon className="w-4 h-4 text-gray-600" /></div>
           )}
