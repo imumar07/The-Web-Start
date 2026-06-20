@@ -1,14 +1,11 @@
-import type { Metadata } from "next";
+"use client";
+import { useState } from "react";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GradientText } from "@/components/ui/GradientText";
 import { CTASection } from "@/components/sections/home/CTASection";
-
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "Insights on web development, design, SEO, and digital marketing from The Web Start team.",
-};
+import { m, AnimatePresence } from "framer-motion";
 
 const posts = [
   {
@@ -40,7 +37,13 @@ const posts = [
   },
 ];
 
+const allTags = ["All", ...Array.from(new Set(posts.map(p => p.tag)))];
+
 export default function BlogPage() {
+  const [activeTab, setActiveTab] = useState("All");
+
+  const filtered = activeTab === "All" ? posts : posts.filter(p => p.tag === activeTab);
+
   return (
     <>
       <Navbar />
@@ -59,32 +62,73 @@ export default function BlogPage() {
           </p>
         </section>
 
-        <section className="section-padding">
-          <div className="container-custom grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
-              <article key={post.slug} className="glass rounded-2xl overflow-hidden border border-white/[0.07] hover:border-white/15 transition-all duration-300 group">
-                <div className="relative h-48 overflow-hidden">
-                  <Image src={post.image} alt={post.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width:768px)100vw,33vw" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#04040a] via-transparent to-transparent" />
-                  <div className="absolute top-3 left-3">
-                    <span className="text-xs text-purple-300 bg-purple-500/20 border border-purple-500/30 px-2.5 py-1 rounded-full">{post.tag}</span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3 text-xs text-gray-600 mb-3">
-                    <span>{post.date}</span>
-                    <span>·</span>
-                    <span>{post.readTime} read</span>
-                  </div>
-                  <h2 className="font-display font-bold text-white text-lg mb-2 group-hover:text-purple-300 transition-colors leading-snug">
-                    {post.title}
-                  </h2>
-                  <p className="text-gray-500 text-sm leading-relaxed">{post.excerpt}</p>
-                </div>
-              </article>
-            ))}
+        {/* Category Tabs */}
+        <section className="pb-4">
+          <div className="container-custom flex items-center justify-center">
+            <div className="flex gap-2 glass rounded-2xl p-1.5 flex-wrap justify-center">
+              {allTags.map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => setActiveTab(tag)}
+                  className="relative px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200"
+                  style={activeTab === tag ? { color: "white" } : { color: "#6b7280" }}
+                >
+                  {activeTab === tag && (
+                    <m.span
+                      layoutId="blog-tab-indicator"
+                      className="absolute inset-0 rounded-xl"
+                      style={{ background: "linear-gradient(135deg,#7c3aed,#06b6d4)" }}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{tag}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
+
+        {/* Posts Grid */}
+        <section className="section-padding pt-6">
+          <div className="container-custom">
+            <AnimatePresence mode="wait">
+              <m.div
+                key={activeTab}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+              >
+                {filtered.length === 0 ? (
+                  <div className="col-span-3 text-center py-20 text-gray-600">No posts in this category yet.</div>
+                ) : filtered.map((post) => (
+                  <article key={post.slug} className="glass rounded-2xl overflow-hidden border border-white/[0.07] hover:border-white/15 transition-all duration-300 group">
+                    <div className="relative h-48 overflow-hidden">
+                      <Image src={post.image} alt={post.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width:768px)100vw,33vw" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#04040a] via-transparent to-transparent" />
+                      <div className="absolute top-3 left-3">
+                        <span className="text-xs text-purple-300 bg-purple-500/20 border border-purple-500/30 px-2.5 py-1 rounded-full">{post.tag}</span>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 text-xs text-gray-600 mb-3">
+                        <span>{post.date}</span>
+                        <span>·</span>
+                        <span>{post.readTime} read</span>
+                      </div>
+                      <h2 className="font-display font-bold text-white text-lg mb-2 group-hover:text-purple-300 transition-colors leading-snug">
+                        {post.title}
+                      </h2>
+                      <p className="text-gray-500 text-sm leading-relaxed">{post.excerpt}</p>
+                    </div>
+                  </article>
+                ))}
+              </m.div>
+            </AnimatePresence>
+          </div>
+        </section>
+
         <CTASection />
       </main>
       <Footer />
