@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
+  transpilePackages: ["lenis"],
 
   serverExternalPackages: ["@libsql/client", "bcryptjs", "@react-pdf/renderer", "razorpay"],
 
