@@ -7,7 +7,6 @@ import { StatusBadge } from "./StatusBadge";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
-import { GradientText } from "@/components/ui/GradientText";
 import type { ProjectWithClient } from "@/types/dashboard";
 
 const STATUSES = ["inquiry","proposal","active","review","completed","paused","cancelled"];
@@ -218,29 +217,33 @@ export function ProjectsManager() {
               onClick={() => setShowForm(false)} />
             <div className="fixed inset-0 z-[51] overflow-y-auto overscroll-contain touch-pan-y">
               <div className="flex min-h-full items-center justify-center p-4">
-              <m.div className="glass-strong rounded-2xl p-7 w-full max-w-lg border border-white/15 shadow-glass-lg my-8 max-h-[90vh] overflow-y-auto overscroll-contain"
-                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              <m.div className="glass-strong rounded-2xl p-7 w-full max-w-4xl border border-white/15 shadow-glass-lg my-8 max-h-[90vh] overflow-y-auto overscroll-contain"
+                initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}>
                 <h2 className="font-display font-bold text-white text-lg mb-6">
-                  {editing ? "Edit Project" : <><GradientText>New</GradientText> Project</>}
+                  {editing ? "Edit Project" : "New Project"}
                 </h2>
-                <form onSubmit={handleSave} className="space-y-4">
-                  {!editing && <Select label="Client" options={clientOpts} value={form.client_id} onChange={e => setForm(f => ({ ...f, client_id: e.target.value }))} required />}
-                  <Input label="Project Title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Select label="Service" options={SERVICE_OPTS} value={form.service_type} onChange={e => setForm(f => ({ ...f, service_type: e.target.value }))} />
-                    <Select label="Priority" options={PRIORITY_OPTS} value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} />
+                <form onSubmit={handleSave}>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    {/* Left column */}
+                    <div className="space-y-4">
+                      {!editing && <Select label="Client" options={clientOpts} value={form.client_id} onChange={e => setForm(f => ({ ...f, client_id: e.target.value }))} required />}
+                      <Input label="Project Title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+                      <Select label="Service" options={SERVICE_OPTS} value={form.service_type} onChange={e => setForm(f => ({ ...f, service_type: e.target.value }))} />
+                      <Select label="Status" options={STATUS_OPTS} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} />
+                      <Input label="Due Date" type="date" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
+                    </div>
+                    {/* Right column */}
+                    <div className="space-y-4">
+                      <Select label="Priority" options={PRIORITY_OPTS} value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} />
+                      <Input label="Budget (₹)" type="number" value={form.budget} onChange={e => setForm(f => ({ ...f, budget: e.target.value }))} />
+                      <Textarea label="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={4} />
+                      <Textarea label="Client-visible Notes" value={form.client_notes} onChange={e => setForm(f => ({ ...f, client_notes: e.target.value }))} rows={3} />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Select label="Status" options={STATUS_OPTS} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} />
-                    <Input label="Budget (₹)" type="number" value={form.budget} onChange={e => setForm(f => ({ ...f, budget: e.target.value }))} />
-                  </div>
-                  <Input label="Due Date" type="date" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
-                  <Textarea label="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} />
-                  <Textarea label="Client-visible Notes" value={form.client_notes} onChange={e => setForm(f => ({ ...f, client_notes: e.target.value }))} rows={2} />
-                  <div className="flex gap-3 pt-2">
+                  <div className="flex gap-3 pt-6">
                     <Button type="button" variant="ghost" onClick={() => setShowForm(false)} className="flex-1 justify-center border border-white/10">Cancel</Button>
-                    <Button type="submit" loading={saving} className="flex-1 justify-center">{editing ? "Save" : "Create Project"}</Button>
+                    <Button type="submit" loading={saving} className="flex-1 justify-center">{editing ? "Save Changes" : "Create Project"}</Button>
                   </div>
                 </form>
               </m.div>
