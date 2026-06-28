@@ -86,7 +86,7 @@ const S = StyleSheet.create({
   metaValue: { fontSize: 9, fontWeight: "bold", color: DARK },
 
   // ── body ──
-  body: { paddingHorizontal: 36, paddingTop: 20 },
+  body: { paddingHorizontal: 36, paddingTop: 20, paddingBottom: 60 },
 
   // ── parties ──
   parties: { flexDirection: "row", gap: 16, marginBottom: 20 },
@@ -278,8 +278,8 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
 
           {/* Table */}
           <View style={S.tableSection}>
-            {/* Head */}
-            <View style={S.tableHead}>
+            {/* Head — repeats on every page */}
+            <View style={S.tableHead} fixed>
               <Text style={[S.thText, S.colNo]}>#</Text>
               <Text style={[S.thText, S.colSvc]}>Service / Description</Text>
               <Text style={[S.thText, S.colQty]}>Qty</Text>
@@ -290,9 +290,9 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
               <Text style={[S.thText, S.colAmt]}>Amount</Text>
             </View>
 
-            {/* Rows */}
+            {/* Rows — wrap={false} keeps each row on one page */}
             {items.map((item, i) => (
-              <View style={[S.tableRow, i % 2 === 1 ? S.tableRowAlt : {}]} key={i}>
+              <View style={[S.tableRow, i % 2 === 1 ? S.tableRowAlt : {}]} key={i} wrap={false}>
                 <Text style={S.cellNo}>{i + 1}</Text>
                 <View style={S.cellSvc}>
                   <Text style={S.cellSvcName}>{item.service}</Text>
@@ -313,7 +313,7 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
           </View>
 
           {/* Totals */}
-          <View style={S.totalsWrap}>
+          <View style={S.totalsWrap} wrap={false}>
             <View style={S.totalsBox}>
               <View style={S.totalRow}>
                 <Text style={S.totalLabel}>Subtotal</Text>
@@ -342,7 +342,7 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
 
           {/* Terms / Notes */}
           {(quote.terms || quote.notes) && (
-            <View style={S.bottomGrid}>
+            <View style={S.bottomGrid} wrap={false}>
               {!!quote.terms && (
                 <View style={S.infoBox}>
                   <Text style={S.infoLabel}>Terms &amp; Conditions</Text>
