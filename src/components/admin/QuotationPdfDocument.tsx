@@ -132,9 +132,8 @@ const S = StyleSheet.create({
   colQty:   { width: 30, textAlign: "right" },
   colUnit:  { width: 34, textAlign: "right" },
   colPrice: { width: 58, textAlign: "right" },
-  colDisc:  { width: 32, textAlign: "right" },
-  colGst:   { width: 30, textAlign: "right" },
-  colAmt:   { width: 64, textAlign: "right" },
+  colDisc:  { width: 40, textAlign: "right" },
+  colAmt:   { width: 72, textAlign: "right" },
 
   cellNo:    { width: 22, fontSize: 8, color: MUTED },
   cellSvc:   { flex: 1 },
@@ -249,10 +248,6 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
             <Text style={S.metaLabel}>Currency</Text>
             <Text style={S.metaValue}>{quote.currency}</Text>
           </View>
-          <View style={S.metaCell}>
-            <Text style={S.metaLabel}>GST Rate</Text>
-            <Text style={S.metaValue}>{quote.tax_percent}%</Text>
-          </View>
         </View>
 
         {/* ── BODY ── */}
@@ -286,7 +281,6 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
               <Text style={[S.thText, S.colUnit]}>Unit</Text>
               <Text style={[S.thText, S.colPrice]}>Unit Price</Text>
               <Text style={[S.thText, S.colDisc]}>Disc%</Text>
-              <Text style={[S.thText, S.colGst]}>GST%</Text>
               <Text style={[S.thText, S.colAmt]}>Amount</Text>
             </View>
 
@@ -306,7 +300,6 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
                 <Text style={[S.cellNum, S.colUnit]}>{item.unit}</Text>
                 <Text style={[S.cellNum, S.colPrice]}>{INR(item.unit_price)}</Text>
                 <Text style={[S.cellNum, S.colDisc]}>{item.discount_percent > 0 ? `${item.discount_percent}%` : "—"}</Text>
-                <Text style={[S.cellNum, S.colGst]}>{item.tax_percent > 0 ? `${item.tax_percent}%` : "—"}</Text>
                 <Text style={[S.cellAmt, S.colAmt]}>{INR(item.amount)}</Text>
               </View>
             ))}
@@ -325,12 +318,6 @@ export function QuotationPdfDocument({ quote }: { quote: QuotationWithItems }) {
                     Discount{quote.discount_type === "percent" ? ` (${quote.discount_value}%)` : " (fixed)"}
                   </Text>
                   <Text style={[S.totalValue, S.totalDiscount]}>- {INR(quote.discount_amount)}</Text>
-                </View>
-              )}
-              {(quote.tax_amount ?? 0) > 0 && (
-                <View style={S.totalRow}>
-                  <Text style={S.totalLabel}>GST ({quote.tax_percent}%)</Text>
-                  <Text style={S.totalValue}>{INR(quote.tax_amount)}</Text>
                 </View>
               )}
               <View style={S.grandBox}>

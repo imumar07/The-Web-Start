@@ -24,26 +24,24 @@ const fmt = (n: number | null | undefined, currency = "INR") =>
 
 const inDays = (days: number) => new Date(Date.now() + days * 86400000).toISOString().split("T")[0];
 
-const UNIT_OPTIONS = ["project", "hour", "day", "month", "unit"];
+const UNIT_OPTIONS = ["project", "service", "hour", "day", "month", "unit"];
 
 const emptyItem = (): CreateQuotationItem => ({
-  service: "", description: "", quantity: 1, unit: "project",
+  service: "", description: "", quantity: 1, unit: "service",
   unit_price: 0, discount_percent: 0, tax_percent: 0, amount: 0,
 });
 
 function calcAmount(item: CreateQuotationItem) {
   const gross = item.quantity * item.unit_price;
   const afterDiscount = gross * (1 - (item.discount_percent ?? 0) / 100);
-  const withTax = afterDiscount * (1 + (item.tax_percent ?? 0) / 100);
-  return Math.round(withTax * 100) / 100;
+  return Math.round(afterDiscount * 100) / 100;
 }
 
-function calcTotals(items: CreateQuotationItem[], discountType: string, discountValue: number, taxPercent: number) {
+function calcTotals(items: CreateQuotationItem[], discountType: string, discountValue: number) {
   const subtotal = items.reduce((s, i) => s + i.amount, 0);
   const discountAmount = discountType === "percent" ? subtotal * (discountValue / 100) : discountValue;
-  const taxable = subtotal - discountAmount;
-  const taxAmount = taxable * (taxPercent / 100);
-  return { subtotal, discountAmount, taxAmount, total: taxable + taxAmount };
+  const total = subtotal - discountAmount;
+  return { subtotal, discountAmount, taxAmount: 0, total };
 }
 
 function LogoMark(props: { className?: string }) {
@@ -167,7 +165,6 @@ function PrintPreview({ quote }: { quote: QuotationWithItems }) {
             ["Issue Date", (quote.created_at ?? "").split("T")[0]],
             ["Valid Until", quote.valid_until ?? "—"],
             ["Currency", quote.currency],
-            ["GST Rate", `${quote.tax_percent}%`],
           ].map(([label, value]) => (
             <div key={label}>
               <div className="text-gray-400 uppercase tracking-wider text-[9px] mb-0.5">{label}</div>
@@ -214,7 +211,6 @@ function PrintPreview({ quote }: { quote: QuotationWithItems }) {
                 <th className="text-right text-[9px] font-bold text-white uppercase tracking-wider py-2.5 px-2 w-12">Unit</th>
                 <th className="text-right text-[9px] font-bold text-white uppercase tracking-wider py-2.5 px-2 w-24">Unit Price</th>
                 <th className="text-right text-[9px] font-bold text-white uppercase tracking-wider py-2.5 px-2 w-12">Disc%</th>
-                <th className="text-right text-[9px] font-bold text-white uppercase tracking-wider py-2.5 px-2 w-12">GST%</th>
                 <th className="text-right text-[9px] font-bold text-white uppercase tracking-wider py-2.5 pl-2 pr-3 rounded-r-lg w-24">Amount</th>
               </tr>
             </thead>
@@ -239,7 +235,6 @@ function PrintPreview({ quote }: { quote: QuotationWithItems }) {
                   <td className="py-3 px-2 text-right text-xs text-gray-500 align-top">{item.unit}</td>
                   <td className="py-3 px-2 text-right text-xs text-gray-700 align-top">{fmt(item.unit_price, quote.currency)}</td>
                   <td className="py-3 px-2 text-right text-xs text-gray-500 align-top">{item.discount_percent > 0 ? `${item.discount_percent}%` : "—"}</td>
-                  <td className="py-3 px-2 text-right text-xs text-gray-500 align-top">{item.tax_percent > 0 ? `${item.tax_percent}%` : "—"}</td>
                   <td className="py-3 pl-2 pr-3 text-right font-bold text-gray-900 text-sm align-top">{fmt(item.amount, quote.currency)}</td>
                 </tr>
               )) : (
@@ -259,11 +254,6 @@ function PrintPreview({ quote }: { quote: QuotationWithItems }) {
               <div className="flex justify-between text-xs py-1.5 border-b border-gray-100 text-emerald-600">
                 <span>Discount {quote.discount_type === "percent" ? `(${quote.discount_value}%)` : "(fixed)"}</span>
                 <span className="font-medium">− {fmt(discountAmount, quote.currency)}</span>
-              </div>
-            )}
-            {taxAmount > 0 && (
-              <div className="flex justify-between text-xs text-gray-500 py-1.5 border-b border-gray-100">
-                <span>GST ({quote.tax_percent}%)</span><span className="font-medium text-gray-800">{fmt(taxAmount, quote.currency)}</span>
               </div>
             )}
             <div className="flex justify-between items-center px-4 py-3 rounded-xl mt-2" style={{ background: "#0f0f23" }}>
@@ -348,8 +338,8 @@ function ItemRow({
           className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors resize-none" />
       </div>
 
-      {/* Qty / Unit / Unit Price / Disc / Tax / Amount */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* Qty / Unit / Unit Price / Disc / Amount */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div>
           <label className="text-xs text-gray-500 block mb-1">Qty</label>
           <input type="number" min={0.01} step={0.01} value={item.quantity}
@@ -370,15 +360,9 @@ function ItemRow({
             className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors" />
         </div>
         <div>
-          <label className="text-xs text-gray-500 block mb-1">Disc %</label>
+          <label className="text-xs text-gray-500 block mb-1">Discount %</label>
           <input type="number" min={0} max={100} step={0.5} value={item.discount_percent}
             onChange={e => update({ discount_percent: Number(e.target.value) })}
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors" />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 block mb-1">GST %</label>
-          <input type="number" min={0} max={100} step={1} value={item.tax_percent}
-            onChange={e => update({ tax_percent: Number(e.target.value) })}
             className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors" />
         </div>
         <div>
@@ -414,7 +398,7 @@ interface FormData {
 const defaultForm = (): FormData => ({
   client_id: "", client_name: "", client_email: "", client_phone: "", client_company: "", client_address: "",
   title: "Quotation", valid_until: inDays(30), currency: "INR",
-  discount_type: "percent", discount_value: 0, tax_percent: 18,
+  discount_type: "percent", discount_value: 0, tax_percent: 0,
   terms: "1. 50% advance payment required to start the project.\n2. Balance payment due on project completion.\n3. Quotation valid for 30 days from the date of issue.\n4. Any additional requirements will be quoted separately.",
   notes: "",
   items: [emptyItem()],
@@ -456,8 +440,8 @@ function QuotationForm({
   const addItem = () => setForm(prev => ({ ...prev, items: [...prev.items, emptyItem()] }));
   const removeItem = (i: number) => setForm(prev => ({ ...prev, items: prev.items.filter((_, idx) => idx !== i) }));
 
-  const { subtotal, discountAmount, taxAmount, total } = calcTotals(
-    form.items, form.discount_type, form.discount_value, form.tax_percent
+  const { subtotal, discountAmount, total } = calcTotals(
+    form.items, form.discount_type, form.discount_value
   );
 
   return (
@@ -540,28 +524,23 @@ function QuotationForm({
       {/* Totals & discounts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass rounded-2xl p-6 border border-white/[0.08]">
-          <h3 className="text-white font-semibold mb-4">Discount & Tax</h3>
-          <div className="space-y-4">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="text-xs text-gray-500 block mb-1">Overall Discount Type</label>
-                <select value={form.discount_type} onChange={e => set("discount_type", e.target.value as "percent" | "fixed")}
-                  className="w-full bg-[#0a0a1f] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors">
-                  <option value="percent">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount (₹)</option>
-                </select>
-              </div>
-              <div className="w-28">
-                <label className="text-xs text-gray-500 block mb-1">Value</label>
-                <input type="number" min={0} value={form.discount_value}
-                  onChange={e => set("discount_value", Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors" />
-              </div>
+          <h3 className="text-white font-semibold mb-4">Overall Discount</h3>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 block mb-1">Discount Type</label>
+              <select value={form.discount_type} onChange={e => set("discount_type", e.target.value as "percent" | "fixed")}
+                className="w-full bg-[#0a0a1f] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors">
+                <option value="percent">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (₹)</option>
+              </select>
             </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">GST / Tax %</label>
-              <input type="number" min={0} max={100} value={form.tax_percent}
-                onChange={e => set("tax_percent", Number(e.target.value))}
+            <div className="w-36">
+              <label className="text-xs text-gray-500 block mb-1">
+                {form.discount_type === "percent" ? "Discount %" : "Discount Amount (₹)"}
+              </label>
+              <input type="number" min={0} value={form.discount_value}
+                onChange={e => set("discount_value", Number(e.target.value))}
+                placeholder={form.discount_type === "percent" ? "e.g. 10" : "e.g. 5000"}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-colors" />
             </div>
           </div>
@@ -576,12 +555,10 @@ function QuotationForm({
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between text-emerald-400 py-1 border-b border-white/5">
-                <span>Discount</span><span>- {fmt(discountAmount, form.currency)}</span>
+                <span>Discount {form.discount_type === "percent" ? `(${form.discount_value}%)` : "(fixed)"}</span>
+                <span>− {fmt(discountAmount, form.currency)}</span>
               </div>
             )}
-            <div className="flex justify-between text-gray-400 py-1 border-b border-white/5">
-              <span>GST ({form.tax_percent}%)</span><span className="text-white">{fmt(taxAmount, form.currency)}</span>
-            </div>
             <div className="flex justify-between py-3 px-3 rounded-xl mt-2"
               style={{ background: "linear-gradient(135deg,#7c3aed15,#06b6d415)", border: "1px solid #7c3aed30" }}>
               <span className="font-bold text-white text-base">Total</span>
