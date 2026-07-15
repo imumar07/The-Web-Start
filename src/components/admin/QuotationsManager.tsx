@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Plus, Search, Eye, Edit2, Trash2, FileText, Send,
-  CheckCircle, XCircle, X, Save, Printer, ArrowRight, Copy,
+  CheckCircle, XCircle, X, Save, Printer, ArrowRight, Copy, Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Select } from "@/components/ui/Input";
@@ -612,6 +612,7 @@ export function QuotationsManager() {
   const [selected, setSelected] = useState<QuotationWithItems | null>(null);
   const [saving, setSaving] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [downloading, setDownloading] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [error, setError] = useState("");
@@ -747,6 +748,26 @@ export function QuotationsManager() {
       alert((error as Error).message || "Quotation duplication failed.");
     } finally {
       setDuplicating(false);
+    }
+  };
+
+  const handleDownload = async (id: number, quoteNo: string) => {
+    setDownloading(id);
+    try {
+      const quote = await loadDetail(id);
+      const blob = await generatePdfBlob(quote);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${quoteNo}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (e) {
+      console.error("PDF download failed", e);
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -896,6 +917,13 @@ export function QuotationsManager() {
                         <button onClick={async () => { const d = await loadDetail(q.id); setSelected(d); setView("preview"); }}
                           title="Preview" className="p-1.5 text-gray-500 hover:text-cyan-400 transition-colors rounded-lg hover:bg-cyan-500/10">
                           <Eye className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDownload(q.id, q.quote_no)}
+                          disabled={downloading === q.id}
+                          title="Download PDF" className="p-1.5 text-gray-500 hover:text-emerald-400 disabled:opacity-50 transition-colors rounded-lg hover:bg-emerald-500/10">
+                          {downloading === q.id
+                            ? <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
+                            : <Download className="w-4 h-4" />}
                         </button>
                         <button onClick={async () => { const d = await loadDetail(q.id); setSelected(d); setView("edit"); }}
                           title="Edit" className="p-1.5 text-gray-500 hover:text-purple-400 transition-colors rounded-lg hover:bg-purple-500/10">
